@@ -10,21 +10,11 @@ type Middleware = (
 ) => Record<string, unknown>;
 
 function createMixpanel() {
-  let mixpanel;
-  if (BUILD_CONFIG.MIXPANEL_TOKEN) {
-    mixpanelBrowser.init(BUILD_CONFIG.MIXPANEL_TOKEN || '', {
-      track_pageview: true,
-      persistence: 'localStorage',
-      api_host: 'https://telemetry.affine.run',
-      ignore_dnt: true,
-    });
-    mixpanel = mixpanelBrowser;
-  } else {
-    mixpanel = new Proxy(
-      function () {} as unknown as OverridedMixpanel,
-      createProxyHandler()
-    );
-  }
+  // Telemetry disabled - always use no-op proxy
+  const mixpanel = new Proxy(
+    function () {} as unknown as OverridedMixpanel,
+    createProxyHandler()
+  );
 
   const middlewares = new Set<Middleware>();
 

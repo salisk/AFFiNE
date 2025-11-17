@@ -105,13 +105,8 @@ export class OpentelemetryProvider {
 
   @OnEvent('config.init')
   async init(event: Events['config.init']) {
-    if (env.flavors.script) {
-      return;
-    }
-    if (event.config.metrics.enabled) {
-      await this.setup();
-      registerCustomMetrics();
-    }
+    // Telemetry disabled - no metrics initialization
+    return;
   }
 
   @OnEvent('config.changed')
@@ -126,20 +121,9 @@ export class OpentelemetryProvider {
   }
 
   private async setup() {
-    if (this.config.metrics.enabled) {
-      if (!this.#sdk) {
-        const factory = this.ref.get(OpentelemetryOptionsFactory, {
-          strict: false,
-        });
-        this.#sdk = new NodeSDK(factory.create());
-      }
-
-      this.#sdk.start();
-      this.#logger.log('OpenTelemetry SDK started');
-    } else {
-      await this.#sdk?.shutdown();
-      this.#sdk = null;
-      this.#logger.log('OpenTelemetry SDK stopped');
-    }
+    // Telemetry disabled - OpenTelemetry will never start
+    await this.#sdk?.shutdown();
+    this.#sdk = null;
+    this.#logger.log('OpenTelemetry SDK disabled');
   }
 }

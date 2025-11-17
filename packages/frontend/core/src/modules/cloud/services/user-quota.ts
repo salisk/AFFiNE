@@ -8,15 +8,7 @@ import { AccountChanged } from '../events/account-changed';
 export class UserQuotaService extends Service {
   constructor() {
     super();
-
-    this.quota.quota$
-      .map(q => q?.humanReadable.name)
-      .distinctUntilChanged()
-      .subscribe(quota => {
-        mixpanel.people.set({
-          quota,
-        });
-      });
+    // Telemetry disabled - no quota tracking
   }
 
   quota = this.framework.createEntity(UserQuota);

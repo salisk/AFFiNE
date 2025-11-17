@@ -105,8 +105,10 @@ export const OnboardingPage = ({
   const location = useLocation();
   const navigate = useNavigate();
   const [questionIdx, setQuestionIdx] = useState(0);
+  // Self-hosted: Disabled questionnaire fetching
+  // Original code tried to GET from /api/worker/questionnaire
   const { data: questions } = useSWR<Question[]>(
-    '/api/worker/questionnaire',
+    null, // Disabled
     url => fetch(url).then(r => r.json()),
     { suspense: true, revalidateOnFocus: false }
   );
@@ -226,15 +228,12 @@ export const OnboardingPage = ({
                     ],
                   };
 
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  fetch('/api/worker/questionnaire', {
-                    method: 'POST',
-                    body: JSON.stringify(answer),
-                  }).finally(() => {
-                    setOptions(new Set());
-                    setInputs({});
-                    setQuestionIdx(questionIdx + 1);
-                  });
+                  // Self-hosted: Disabled questionnaire data collection
+                  // Original code tried to POST to /api/worker/questionnaire
+                  // which is not handled by self-hosted backend
+                  setOptions(new Set());
+                  setInputs({});
+                  setQuestionIdx(questionIdx + 1);
                 } else {
                   setQuestionIdx(questionIdx + 1);
                 }

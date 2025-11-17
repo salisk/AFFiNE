@@ -64,53 +64,8 @@ export function makeTracker(trackFn: TrackFn): CallableEventsChain {
  * ```
  */
 export function enableAutoTrack(root: HTMLElement, trackFn: TrackFn) {
-  const listener = (e: Event) => {
-    const el = e.target as HTMLElement | null;
-    if (!el) {
-      return;
-    }
-    const dataset = el.dataset;
-
-    if (dataset['eventProps']) {
-      const args: Record<string, any> = {};
-      if (dataset['eventArg'] !== undefined) {
-        args['arg'] = dataset['event-arg'];
-      } else {
-        for (const argName of Object.keys(dataset)) {
-          if (argName.startsWith('eventArgs')) {
-            args[argName.slice(9).toLowerCase()] = dataset[argName];
-          }
-        }
-      }
-
-      const props = dataset['eventProps']
-        .split('.')
-        .map(name => (name === '$' ? undefined : name));
-      if (props.length !== levels.length) {
-        logger.error('Invalid event props on element', el);
-        return;
-      }
-
-      const event = props[3];
-
-      if (!event) {
-        logger.error('Invalid event props on element', el);
-        return;
-      }
-
-      trackFn(event, {
-        page: props[0] as any,
-        segment: props[1],
-        module: props[2],
-        ...args,
-      });
-    }
-  };
-
-  root.addEventListener('click', listener, {});
-  return () => {
-    root.removeEventListener('click', listener);
-  };
+  // Auto-tracking disabled - return no-op cleanup function
+  return () => {};
 }
 
 declare module 'react' {

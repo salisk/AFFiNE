@@ -73,7 +73,7 @@ const trackAction = ({
   eventName: AIActionEventName;
   properties: AIActionEventProperties;
 }) => {
-  mixpanel.track(eventName, properties);
+  // Telemetry disabled - no AI action tracking
 };
 
 const inferPageMode = (host: EditorHost) => {
@@ -258,18 +258,5 @@ const toTrackedOptions = (
 };
 
 export function setupTracker() {
-  AIProvider.slots.requestUpgradePlan.subscribe(() => {
-    track.$.paywall.aiAction.viewPlans();
-  });
-
-  AIProvider.slots.requestLogin.subscribe(() => {
-    track.doc.editor.aiActions.requestSignIn();
-  });
-
-  AIProvider.slots.actions.subscribe(event => {
-    const properties = toTrackedOptions(event);
-    if (properties) {
-      trackAction(properties);
-    }
-  });
+  // Telemetry disabled - no AI tracking setup
 }

@@ -114,6 +114,10 @@ export class ServerConfigResolver {
     description: 'fetch latest available upgradable release of server',
   })
   async availableUpgrade(): Promise<ReleaseVersionType | null> {
+    // Self-hosted: Disable automatic update checks to affine.pro
+    return null;
+
+    /* Original code disabled for self-hosted privacy
     if (!env.selfhosted) {
       return null;
     }
@@ -129,6 +133,7 @@ export class ServerConfigResolver {
           'Cache-Control': 'no-cache',
         },
       });
+    */
 
       if (!response.ok) {
         this.logger.error(

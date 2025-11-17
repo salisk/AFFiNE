@@ -46,7 +46,8 @@ export class AFFiNEUpdateProvider extends Provider<GithubUpdateInfo> {
   static configFeed(options: UpdateProviderOptions): CustomPublishOptions {
     return {
       provider: 'custom',
-      feedUrl: 'https://affine.pro/api/worker/releases',
+      // Self-hosted: Disable automatic update checks to affine.pro
+      feedUrl: 'about:blank',
       updateProvider: AFFiNEUpdateProvider,
       ...options,
     };

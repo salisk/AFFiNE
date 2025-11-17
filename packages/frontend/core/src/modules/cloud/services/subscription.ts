@@ -14,22 +14,7 @@ export class SubscriptionService extends Service {
 
   constructor(private readonly store: SubscriptionStore) {
     super();
-    this.subscription.ai$
-      .map(sub => !!sub)
-      .distinctUntilChanged()
-      .subscribe(ai => {
-        mixpanel.people.set({
-          ai,
-        });
-      });
-    this.subscription.pro$
-      .map(sub => !!sub)
-      .distinctUntilChanged()
-      .subscribe(pro => {
-        mixpanel.people.set({
-          pro,
-        });
-      });
+    // Telemetry disabled - no subscription tracking
   }
 
   async createCheckoutSession(input: CreateCheckoutSessionInput) {
