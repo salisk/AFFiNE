@@ -27,18 +27,23 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Install dependencies
-        run: yarn install
+        uses: ./.github/actions/setup-node
 
       - name: Build frontend
         run: |
           yarn affine @affine/web build
           yarn affine @affine/admin build
-          mkdir -p ./packages/frontend/apps/mobile/dist
+          yarn affine @affine/mobile build
+
+      - name: Build server-native
+        uses: ./.github/actions/build-rust
+        with:
+          target: x86_64-unknown-linux-gnu
+          package: '@affine/server-native'
+
+      - name: Rename native module
+        run: |
+          mv ./packages/backend/native/server-native.node ./packages/backend/native/server-native.x64.node
 
       - name: Build backend
         run: |
