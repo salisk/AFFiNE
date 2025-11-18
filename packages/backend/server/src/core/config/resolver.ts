@@ -116,54 +116,6 @@ export class ServerConfigResolver {
   async availableUpgrade(): Promise<ReleaseVersionType | null> {
     // Self-hosted: Disable automatic update checks to affine.pro
     return null;
-
-    /* Original code disabled for self-hosted privacy
-    if (!env.selfhosted) {
-      return null;
-    }
-
-    const channel = RELEASE_CHANNEL_MAP.get(env.NAMESPACE) ?? 'stable';
-    const url = `https://affine.pro/api/worker/releases?channel=${channel}`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-      });
-    */
-
-      if (!response.ok) {
-        this.logger.error(
-          'failed to fetch affine releases',
-          await response.text()
-        );
-        return null;
-      }
-      const releases = (await response.json()) as Array<{
-        name: string;
-        url: string;
-        body: string;
-        published_at: string;
-      }>;
-
-      const latest = releases.at(0);
-      if (!latest || latest.name === env.version) {
-        return null;
-      }
-
-      return {
-        version: latest.name,
-        url: latest.url,
-        changelog: latest.body,
-        publishedAt: new Date(latest.published_at),
-      };
-    } catch (e) {
-      this.logger.error('failed to fetch affine releases', e);
-      return null;
-    }
   }
 }
 
