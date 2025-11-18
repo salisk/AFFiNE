@@ -4,8 +4,8 @@ set -e
 # Configuration (override via environment variables)
 REGISTRY="${REGISTRY:-your-registry.example.com}"
 PROJECT="${PROJECT:-affine}"
-IMAGE_NAME="${IMAGE_NAME:-affine-no-telemetry}"
-VERSION="${VERSION:-0.25.4-no-telemetry}"
+IMAGE_NAME="${IMAGE_NAME:-affine}"
+VERSION="${VERSION:-0.25.5-no-telemetry}"
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
@@ -27,55 +27,27 @@ echo "  - ${FULL_IMAGE}"
 echo "  - ${LATEST_IMAGE}"
 echo "  - ${GIT_IMAGE}"
 echo ""
-
-# Check if logged in
-echo "[1/6] Checking registry authentication..."
-if ! docker login ${REGISTRY} 2>/dev/null; then
-  echo ""
-  echo "❌ Not logged in to registry!"
-  echo ""
-  echo "Please login first:"
-  echo "  docker login ${REGISTRY}"
-  echo ""
-  exit 1
-fi
-echo "✅ Authenticated"
+echo "Building everything inside Docker for linux/amd64..."
+echo "This will take 10-15 minutes..."
 echo ""
 
-# Build frontend and backend
-echo "[2/6] Installing dependencies..."
-yarn install
+# Ensure buildx is available
+if ! docker buildx version &> /dev/null; then
+  echo "❌ docker buildx is not available. Please install Docker Desktop."
+  exit 1
+fi
 
-echo "[3/6] Building @affine/web (frontend)..."
-yarn affine @affine/web build
+# Create or use buildx builder
+if ! docker buildx ls | grep -q "affine-builder"; then
+  echo "Creating buildx builder instance..."
+  docker buildx create --name affine-builder --use --bootstrap
+else
+  docker buildx use affine-builder
+fi
 
-echo "[4/6] Building @affine/admin (admin panel)..."
-yarn affine @affine/admin build
-
-echo "[5/6] Building @affine/server (backend)..."
-# Build backend reader
-yarn workspace @affine/reader build
-# Build server
-yarn workspace @affine/server build
-
-# Prepare for Docker build
-echo "[6/6] Preparing Docker build context..."
-# Install production dependencies
-yarn config set --json supportedArchitectures.cpu '["x64", "arm64", "arm"]'
-yarn config set --json supportedArchitectures.libc '["glibc"]'
-yarn workspaces focus @affine/server --production
-
-# Generate Prisma client
-yarn workspace @affine/server prisma generate
-
-# Move node_modules to server package (required by Dockerfile)
-mv ./node_modules ./packages/backend/server/
-
-# Create empty mobile dist (not needed for server deployment)
-mkdir -p ./packages/frontend/apps/mobile/dist
-
-echo "Building Docker image..."
-docker build \
+# Build image
+docker buildx build \
+  --platform linux/amd64 \
   --file .github/deployment/node/Dockerfile \
   --tag "${FULL_IMAGE}" \
   --tag "${LATEST_IMAGE}" \
@@ -86,10 +58,16 @@ docker build \
   --label "org.opencontainers.image.title=AFFiNE Self-Hosted (No Telemetry)" \
   --label "org.opencontainers.image.description=AFFiNE self-hosted with all telemetry removed" \
   --progress=plain \
+  --load \
   .
 
 echo ""
 echo "✅ Build complete!"
+echo ""
+
+# Verify architecture
+echo "Verifying image architecture..."
+docker inspect "${FULL_IMAGE}" | grep -A 1 '"Architecture"'
 echo ""
 
 # Push images
